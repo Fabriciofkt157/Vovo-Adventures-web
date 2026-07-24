@@ -7,13 +7,11 @@ export const GAME_W = 640;
 export const GAME_H = 360;
 export const ASPECT = GAME_W / GAME_H; // 16:9
 
-export const GROUND_Y = 230; // Y (topo do sprite) considerado "chão" para a Senhorinha (10px mais pra cima)
-
 export const PLAYER = {
-  spawnScene1: { x: 220, y: 230 },
-  spawnScene2: { x: 60, y: 230 },
-  runSpeed: 79,        // px/s (reajustado para casar com a animação a 14fps)
-  rollSpeed: 99,       // px/s durante o rolamento (reajustado para casar com a animação a 14fps)
+  spawnScene1: { x: 220, y: 245 },  // 15px mais pra baixo que antes (230 -> 245)
+  spawnScene2: { x: 60, y: 200 },   // 30px mais pra cima que antes (230 -> 200)
+  runSpeed: 113,       // px/s (reajustado para casar com a animação a 20fps)
+  rollSpeed: 141,      // px/s durante o rolamento (reajustado para casar com a animação a 20fps)
   jumpSpeed: 220,      // impulso vertical inicial (px/s)
   gravity: 700,        // px/s^2
   frameW: 64,
@@ -21,9 +19,9 @@ export const PLAYER = {
   idleFrameH: 80,
   idleScale: 0.85,     // sprite de idle é maior que os das animações, reduz 15%
   fps: {
-    correndo: 14,
-    pulando: 14,
-    rolando: 14,
+    correndo: 20,
+    pulando: 20,
+    rolando: 20,
   },
   maxHealth: 6,        // corresponde às 6 imagens de UI/Vida (+ 0 vazio)
   hurtInvulnMs: 800,   // invencibilidade após tomar dano
