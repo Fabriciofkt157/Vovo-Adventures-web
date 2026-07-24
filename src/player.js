@@ -6,8 +6,8 @@ export class Projectile {
     this.img = img;
     this.x = x;
     this.y = y;
-    this.w = 28;
-    this.h = 8;
+    this.w = 56;
+    this.h = 16;
     const len = Math.hypot(dirX, dirY) || 1;
     this.vx = (dirX / len) * speed;
     this.vy = (dirY / len) * speed;
@@ -94,6 +94,21 @@ export class Player {
     return this.paralyzeTimer <= 0;
   }
 
+  // ponto de referência (acima da cabeça) usado pela bengala e pelos ataques
+  getCaneAnchor() {
+    return {
+      x: this.x + this.w / 2,
+      y: this.y + this.h / 2 - PLAYER.caneOffsetY,
+    };
+  }
+
+  // vira a Senhorinha para o lado em que o mouse está apontando
+  updateFacingToMouse(input) {
+    const worldMouseX = input.mouseScreenX + (this._camX || 0);
+    const px = this.x + this.w / 2;
+    this.facing = worldMouseX >= px ? 1 : -1;
+  }
+
   takeHit(fromArrow = false) {
     if (this.invulnTimer > 0) return;
     this.invulnTimer = PLAYER.hurtInvulnMs / 1000;
@@ -143,12 +158,10 @@ export class Player {
     if (this.caneState === "boomerangOut" || this.caneState === "boomerangBack") return; // não pode durante boomerangue
     if (this.caneState === "stunned") return;
 
-    const cx = this.x + this.w / 2;
-    const cy = this.y + this.h / 2 - 10;
+    const { x: cx, y: cy } = this.getCaneAnchor();
     const dx = targetWorldX - cx;
     const dy = targetWorldY - cy;
     this.projectiles.push(new Projectile(this.images.projetil, cx, cy, dx, dy, PLAYER.projectileSpeed));
-    this.facing = dx >= 0 ? 1 : -1;
     this.caneGlow = 0.35;
     this.attackCooldown = (PLAYER.attackCooldownMs / 1000) * this.stats.velocidadeatkMult;
     playSfx(this.sounds.tiro, 0.8);
@@ -160,15 +173,13 @@ export class Player {
     if (this.caneState === "boomerangOut" || this.caneState === "boomerangBack") return;
     if (this.caneState === "stunned") return;
 
-    const cx = this.x + this.w / 2;
-    const cy = this.y + this.h / 2 - 10;
+    const { x: cx, y: cy } = this.getCaneAnchor();
     this.boomerang = {
       x: cx, y: cy,
       targetX: targetWorldX, targetY: targetWorldY,
       originX: cx, originY: cy,
     };
     this.caneState = "boomerangOut";
-    this.facing = targetWorldX >= cx ? 1 : -1;
     this.attackCooldown = (PLAYER.attackCooldownMs / 1000) * this.stats.velocidadeatkMult;
   }
 
@@ -183,6 +194,8 @@ export class Player {
 
     input.inverted = this.invertTimer > 0;
     input.locked = this.paralyzeTimer > 0;
+
+    this.updateFacingToMouse(input);
 
     const moveAxis = input.moveAxis();
     const wantJump = this.allowJump && input.jumpPressed();
@@ -204,7 +217,6 @@ export class Player {
       this.y += this.vy * dt;
       if (moveAxis !== 0) {
         this.x += moveAxis * baseSpeed * dt;
-        this.facing = moveAxis;
       }
       if (this.y >= GROUND_Y) {
         this.y = GROUND_Y;
@@ -226,9 +238,9 @@ export class Player {
         playSfx(this.sounds.pulo, 0.7);
       } else if (moveAxis !== 0) {
         this.state = "run";
-        this.facing = moveAxis;
+        const movingBackward = Math.sign(moveAxis) !== Math.sign(this.facing);
         this.x += moveAxis * baseSpeed * dt;
-        this.anims.run.update(dt);
+        this.anims.run.update(dt, movingBackward);
       } else {
         this.state = "idle";
       }
@@ -245,7 +257,7 @@ export class Player {
       const dy = b.targetY - b.y;
       const d = Math.hypot(dx, dy);
       const step = PLAYER.boomerangSpeed * dt;
-      this.caneAngle += PLAYER.boomerangSpinSpeed * 2 * dt;
+      this.caneAngle += PLAYER.boomerangSpinSpeed * dt;
       if (d <= step) {
         b.x = b.targetX; b.y = b.targetY;
         this.caneState = "boomerangBack";
@@ -255,13 +267,12 @@ export class Player {
       }
     } else if (this.caneState === "boomerangBack" && this.boomerang) {
       const b = this.boomerang;
-      const px = this.x + this.w / 2;
-      const py = this.y + this.h / 2 - 10;
+      const { x: px, y: py } = this.getCaneAnchor();
       const dx = px - b.x;
       const dy = py - b.y;
       const d = Math.hypot(dx, dy);
       const step = PLAYER.boomerangReturnSpeed * dt;
-      this.caneAngle += PLAYER.boomerangSpinSpeed * 2 * dt;
+      this.caneAngle += PLAYER.boomerangSpinSpeed * dt;
       if (d <= step) {
         this.caneState = "orbit";
         this.boomerang = null;
@@ -313,24 +324,31 @@ export class Player {
     else if (this.state === "roll") img = this.anims.roll.current;
     else img = this.images.idle;
 
-    const h = this.state === "idle" ? PLAYER.idleFrameH : this.h;
-    const yOff = this.state === "idle" ? this.h - h : 0;
+    const isIdle = this.state === "idle";
+    const rawH = isIdle ? PLAYER.idleFrameH : this.h;
+    const rawW = this.w;
+    // sprite de idle é maior que os das animações: reduz 15%, mantendo os pés no chão e centralizado
+    const w = isIdle ? rawW * PLAYER.idleScale : rawW;
+    const h = isIdle ? rawH * PLAYER.idleScale : rawH;
+    const yOff = this.h - h;
 
     ctx.translate(drawX + this.w / 2, 0);
-    ctx.scale(this.facing, 1);
-    ctx.drawImage(img, -this.w / 2, drawY + yOff, this.w, h);
+    // os sprites foram desenhados olhando para a esquerda; espelha quando ela olha para a direita
+    ctx.scale(-this.facing, 1);
+    ctx.drawImage(img, -w / 2, drawY + yOff, w, h);
     ctx.restore();
 
-    // bengala
-    this.drawCane(ctx, camX);
+    // bengala (não existe na cena 1, só aparece quando ataques estão liberados)
+    if (this.allowAttacks) this.drawCane(ctx, camX);
 
     // projéteis
     for (const p of this.projectiles) p.draw(ctx, camX);
   }
 
   drawCane(ctx, camX) {
-    const cx = this.x + this.w / 2 - camX;
-    const cy = this.y + this.h / 2 - 10;
+    const anchor = this.getCaneAnchor();
+    const cx = anchor.x - camX;
+    const cy = anchor.y;
     const img = this.caneGlow > 0 ? this.images.bengalaBrilhante : this.images.bengala;
 
     const blinking = this.caneState === "stunned" && Math.floor(this.caneStunTimer * 8) % 2 === 0;
