@@ -7,22 +7,23 @@ export const GAME_W = 640;
 export const GAME_H = 360;
 export const ASPECT = GAME_W / GAME_H; // 16:9
 
-export const GROUND_Y = 240; // Y (topo do sprite) considerado "chão" para a Senhorinha
+export const GROUND_Y = 230; // Y (topo do sprite) considerado "chão" para a Senhorinha (10px mais pra cima)
 
 export const PLAYER = {
-  spawnScene1: { x: 220, y: 240 },
-  spawnScene2: { x: 60, y: 240 },
-  runSpeed: 90,        // px/s
-  rollSpeed: 170,      // px/s durante o rolamento
+  spawnScene1: { x: 220, y: 230 },
+  spawnScene2: { x: 60, y: 230 },
+  runSpeed: 79,        // px/s (reajustado para casar com a animação a 14fps)
+  rollSpeed: 99,       // px/s durante o rolamento (reajustado para casar com a animação a 14fps)
   jumpSpeed: 220,      // impulso vertical inicial (px/s)
   gravity: 700,        // px/s^2
   frameW: 64,
   frameH: 64,
   idleFrameH: 80,
+  idleScale: 0.85,     // sprite de idle é maior que os das animações, reduz 15%
   fps: {
-    correndo: 16,
+    correndo: 14,
     pulando: 14,
-    rolando: 24,
+    rolando: 14,
   },
   maxHealth: 6,        // corresponde às 6 imagens de UI/Vida (+ 0 vazio)
   hurtInvulnMs: 800,   // invencibilidade após tomar dano
@@ -31,6 +32,7 @@ export const PLAYER = {
   boomerangReturnSpeed: 320,
   boomerangOrbitRadius: 20,
   boomerangSpinSpeed: 14, // rad/s do giro visual da bengala
+  caneOffsetY: 50,        // deslocamento vertical da bengala em relação ao centro do corpo (sobe ~40px em relação ao valor anterior de 10)
   projectileSpeed: 300,
 };
 
