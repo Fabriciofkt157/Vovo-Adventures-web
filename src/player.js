@@ -1,4 +1,4 @@
-import { PLAYER, GROUND_Y, CANE_STUN } from "./config.js";
+import { PLAYER, CANE_STUN } from "./config.js";
 import { FrameAnim, clamp, dist, playSfx } from "./utils.js";
 
 export class Projectile {
@@ -38,6 +38,7 @@ export class Player {
     this.sounds = sounds;
     this.x = x;
     this.y = y;
+    this.groundY = y; // cada cena define seu próprio chão através do Y de spawn
     this.w = PLAYER.frameW;
     this.h = PLAYER.frameH;
     this.facing = 1; // 1 = direita, -1 = esquerda
@@ -218,8 +219,8 @@ export class Player {
       if (moveAxis !== 0) {
         this.x += moveAxis * baseSpeed * dt;
       }
-      if (this.y >= GROUND_Y) {
-        this.y = GROUND_Y;
+      if (this.y >= this.groundY) {
+        this.y = this.groundY;
         this.vy = 0;
         this.onGround = true;
         this.state = moveAxis !== 0 ? "run" : "idle";
