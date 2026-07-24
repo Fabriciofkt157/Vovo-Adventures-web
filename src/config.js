@@ -35,11 +35,17 @@ export const PLAYER = {
 };
 
 export const ALERTA = {
-  x: 410, y: 244, w: 20, h: 16,
+  x: 404, y: 225, w: 20, h: 16,
   triggerRadius: 46,
 };
 
 export const PHONE_HOTSPOT = { x: 410, y: 244 }; // mesma área do alerta (o alerta fica acima do telefone)
+
+export const SCENE1_EASTER_EGG = {
+  targetX: 161, targetY: 107, // posição onde a bengala precisa ser jogada
+  triggerRadius: 20,          // tolerância de acerto ao redor do alvo
+  imgW: 42, imgH: 42,         // tamanho da imagem revelada
+};
 
 export const DIALOGUE_TEXT =
   "Olá, vovó... sentiu falta do seu netinho? Venha buscá-lo onde o mundo é obscuro ou ele sucumbirá nas trevas lógicas... Muahaha";
