@@ -73,19 +73,31 @@ export class FrameAnim {
     this.finished = false;
   }
 
-  update(dt) {
+  update(dt, reverse = false) {
     if (this.finished) return;
     this.time += dt;
     const frameDur = 1 / this.fps;
     while (this.time >= frameDur) {
       this.time -= frameDur;
-      this.index++;
-      if (this.index >= this.frames.length) {
-        if (this.loop) {
-          this.index = 0;
-        } else {
-          this.index = this.frames.length - 1;
-          this.finished = true;
+      if (reverse) {
+        this.index--;
+        if (this.index < 0) {
+          if (this.loop) {
+            this.index = this.frames.length - 1;
+          } else {
+            this.index = 0;
+            this.finished = true;
+          }
+        }
+      } else {
+        this.index++;
+        if (this.index >= this.frames.length) {
+          if (this.loop) {
+            this.index = 0;
+          } else {
+            this.index = this.frames.length - 1;
+            this.finished = true;
+          }
         }
       }
     }
