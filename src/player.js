@@ -49,6 +49,7 @@ export class Player {
     this.allowJump = false;
     this.allowRoll = false;
     this.allowAttacks = false;
+    this.showCane = true; // controla apenas a exibição visual da bengala
 
     this.state = "idle"; // idle, run, jump, roll
     this.anims = {
@@ -168,11 +169,11 @@ export class Player {
     playSfx(this.sounds.tiro, 0.8);
   }
 
-  tryBoomerang(targetWorldX, targetWorldY) {
-    if (!this.allowAttacks || !this.canAct) return;
-    if (this.attackCooldown > 0) return;
-    if (this.caneState === "boomerangOut" || this.caneState === "boomerangBack") return;
-    if (this.caneState === "stunned") return;
+  tryBoomerang(targetWorldX, targetWorldY, force = false) {
+    if ((!this.allowAttacks && !force) || !this.canAct) return false;
+    if (this.attackCooldown > 0) return false;
+    if (this.caneState === "boomerangOut" || this.caneState === "boomerangBack") return false;
+    if (this.caneState === "stunned") return false;
 
     const { x: cx, y: cy } = this.getCaneAnchor();
     this.boomerang = {
@@ -182,6 +183,7 @@ export class Player {
     };
     this.caneState = "boomerangOut";
     this.attackCooldown = (PLAYER.attackCooldownMs / 1000) * this.stats.velocidadeatkMult;
+    return true;
   }
 
   update(dt, input, worldW) {
@@ -340,7 +342,7 @@ export class Player {
     ctx.restore();
 
     // bengala (não existe na cena 1, só aparece quando ataques estão liberados)
-    if (this.allowAttacks) this.drawCane(ctx, camX);
+    if (this.allowAttacks && this.showCane) this.drawCane(ctx, camX);
 
     // projéteis
     for (const p of this.projectiles) p.draw(ctx, camX);
