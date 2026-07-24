@@ -1,4 +1,4 @@
-import { GAME_W, GAME_H, PLAYER, ALERTA, DIALOGUE_TEXT } from "./config.js";
+import { GAME_W, GAME_H, PLAYER, ALERTA, DIALOGUE_TEXT, SCENE1_EASTER_EGG } from "./config.js";
 import { Player } from "./player.js";
 import { DialogueBox } from "./ui.js";
 import { dist, playLoop, stopAudio, fadeOutAndStop } from "./utils.js";
@@ -14,6 +14,9 @@ export class Scene1 {
     this.player.allowJump = false;
     this.player.allowRoll = false;
     this.player.allowAttacks = false;
+    this.player.showCane = false; // bengala nunca aparece visualmente na cena 1
+
+    this.easterEggRevealed = false;
 
     this.dialogue = new DialogueBox(DIALOGUE_TEXT);
     this.phoneRinging = true;
@@ -45,6 +48,17 @@ export class Scene1 {
 
     if (!this.triggered) {
       this.player.update(dt, this.input, GAME_W);
+
+      // easter egg: jogar a bengala (boomerangue) na posição alvo revela a imagem
+      if (!this.easterEggRevealed && this.input.leftJustPressed) {
+        const worldMouseX = this.input.mouseScreenX;
+        const worldMouseY = this.input.mouseScreenY;
+        const thrown = this.player.tryBoomerang(worldMouseX, worldMouseY, true);
+        if (thrown && dist(worldMouseX, worldMouseY, SCENE1_EASTER_EGG.targetX, SCENE1_EASTER_EGG.targetY) < SCENE1_EASTER_EGG.triggerRadius) {
+          this.easterEggRevealed = true;
+        }
+      }
+
       const px = this.player.x + this.player.w / 2;
       const py = this.player.y + this.player.h / 2;
       const ax = ALERTA.x + ALERTA.w / 2;
@@ -80,6 +94,16 @@ export class Scene1 {
     ctx.restore();
 
     this.player.draw(ctx, 0);
+
+    if (this.easterEggRevealed) {
+      ctx.drawImage(
+        this.images.logoPet,
+        SCENE1_EASTER_EGG.targetX,
+        SCENE1_EASTER_EGG.targetY,
+        SCENE1_EASTER_EGG.imgW,
+        SCENE1_EASTER_EGG.imgH
+      );
+    }
 
     this.dialogue.draw(ctx, this.images.caixaFalas);
 
