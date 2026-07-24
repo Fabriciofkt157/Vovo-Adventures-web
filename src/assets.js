@@ -21,6 +21,7 @@ export const MANIFEST = {
 
     alerta: BASE + "UI/alerta.png",
     caixaFalas: BASE + "UI/caixa_de_falas.png",
+    logoPet: BASE + "UI/logo_pet.png",
 
     idle: BASE + "Sprites/Senhorinha/idle.png",
     bengala: BASE + "Sprites/Senhorinha/bengala.png",
